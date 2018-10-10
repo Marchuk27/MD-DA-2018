@@ -1,0 +1,152 @@
+---
+title: "lab2"
+author: "Марчук Александр"
+date: "6 октября 2018"
+output: html_document
+---
+#ЗАДАНИЕ 1
+library(MASS)
+data(Cars93)
+
+#1.Выполните команду summary() на полном наборе данных. Можно ли по результату выполнения сказать сколько строк в датафрейме? Если да, напишите сколько. Если нет, то приведите другой способ.
+
+summary(Cars93)
+
+#Для подсчета кол-ва строк используем ф-ию nrow
+
+nrow(Cars93)
+
+#2.Найдите среднюю цену машин с задним приводом.
+
+rear<-(Cars93[,"DriveTrain"]=="Rear")
+mean(Cars93[rear,"Price"])
+
+#Средняя стоимость машин с задним приводом составляет 28.95 каких-то единиц
+
+#3.Найдите минимальное число лошадиных сил автомобиля для 7 пассажиров. Для 6 пассажиров.
+passengers<-(Cars93[,"Passengers"]==7)
+min(Cars93[passengers,"Horsepower"])
+
+passengers<-(Cars93[,"Passengers"]==6)
+min(Cars93[passengers,"Horsepower"])
+
+#Min число л.с. составляет 109 и 100 единиц соответственно.
+
+#4.Найдите машины с максимальным, минимальным и средним(медианой) расстоянием, которая машина может проехать по трассе. Вам понадобятся 2 колонки, чтобы рассчитать расстояние. Какие?
+
+#MPG.highway и Fuel.tank.capacity
+
+distance <- Cars93$MPG.highway * Cars93$Fuel.tank.capacity
+Cars93$Make[which(distance  == max(distance))]
+Cars93$Make[which(distance  == min(distance))]
+Cars93$Make[which(distance  == median(distance))]
+
+#Max - BMW 535i, Min - Mercury Capri, Med - Mazda MPV
+
+#ЗАДАНИЕ 2
+#Ниже приведён пример кода, который старается оптимизировать выпуск продукции ориентируясь на доступные ресурсы.
+
+factory.run <- function (o.cars=1, o.trucks=1) {
+  factory <- matrix(c(40,1,60,3),nrow=2, dimnames=list(c("трудодни","сталь"),c("автомобили","грузовики")))
+  warehouse <- c(1600,70) #Доступно материалов на складе
+  names(warehouse) <- rownames(factory)
+  reserve <- c(8,1)
+  names(reserve) <- rownames(factory)
+  output <- c(o.cars, o.trucks)
+  names(output) <- colnames(factory)
+  
+  steps <- 0 # Счётчик числа шагов цикла
+  repeat {
+    steps <- steps + 1
+    needed <- factory %*% output # Подсчитаем ресурсы, которые нам нужны для производства требуемого кол-ва машин
+    message(steps)
+    print(needed)
+    # Если ресурсов достаточно и остаток меньше или равен резерву, то мы произвели максимум возможного.
+    # Нужно прекращать
+    if (all(needed <= warehouse) && all((warehouse - needed) <= reserve)) {
+      break()
+    }
+    # Если заявка слишком большая и ресурсов недостаточно, уменьшим её на 10%
+    if (all(needed > warehouse)) {
+      output <- output * 0.9
+      next()
+    }
+    # Если всё наоброт, то увеличим на 10%
+    if (all(needed < warehouse)) {
+      output <- output * 1.1
+      next()
+    }
+    # Если мы потребили одного ресурса слишком много, а другого недостаточно,
+    # то увеличим план на случайную величину
+    output <- output * (1+runif(length(output),min=-0.1,max=0.1))
+  }
+  
+  return(output)
+}
+
+#1.Выполните код и запустите эту функцию factory.run()
+
+factory.run()
+
+#2.С каким входными значениями функция вызвана? Какой получился результат?
+
+#Входные значения o.cars=1 (автомобили), o.trucks=1(грузовики), получили в итоге 10 авто и 20 грузовиков.
+
+#3.Повторяю 4 раза.
+
+factory.run()
+factory.run()
+factory.run()
+factory.run()
+
+#Есть отличия, т.к. используем увеличение на случайную величину
+
+#4.В приведённом коде, переменные steps и output находятся внутри алгоритма. Измените функцию так, чтобы она возвращала число шагов и произведённое количество машин.
+
+factory.run <- function (o.cars=1, o.trucks=1) {
+  factory <- matrix(c(40,1,60,3),nrow=2, dimnames=list(c("трудодни","сталь"),c("автомобили","грузовики")))
+  warehouse <- c(1600,70) #Доступно материалов на складе
+  names(warehouse) <- rownames(factory)
+  reserve <- c(8,1)
+  names(reserve) <- rownames(factory)
+  output <- c(o.cars, o.trucks)
+  names(output) <- colnames(factory)
+  
+  steps <- 0 # Счётчик числа шагов цикла
+  repeat {
+    steps <- steps + 1
+    needed <- factory %*% output # Подсчитаем ресурсы, которые нам нужны для производства требуемого кол-ва машин
+   # message(steps)
+    #print(needed)
+    # Если ресурсов достаточно и остаток меньше или равен резерву, то мы произвели максимум возможного.
+    # Нужно прекращать
+    if (all(needed <= warehouse) && all((warehouse - needed) <= reserve)) {
+      break()
+    }
+    # Если заявка слишком большая и ресурсов недостаточно, уменьшим её на 10%
+    if (all(needed > warehouse)) {
+      output <- output * 0.9
+      next()
+    }
+    # Если всё наоброт, то увеличим на 10%
+    if (all(needed < warehouse)) {
+      output <- output * 1.1
+      next()
+    }
+    # Если мы потребили одного ресурса слишком много, а другого недостаточно,
+    # то увеличим план на случайную величину
+    output <- output * (1+runif(length(output),min=-0.1,max=0.1))
+  }
+  vec<-c(steps,output)
+  names(vec)<-c("steps","автомобили", "грузовики")
+  return(vec)
+  print(needed)
+}
+factory.run()
+
+#5.Установите план равный тридцати автомобилям и 20 грузовикам и выполните функцию.
+
+factory.run(o.cars=30, o.trucks=20)
+
+#В результате получилось 3029 итераций
+
