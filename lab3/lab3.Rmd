@@ -1,0 +1,82 @@
+---
+title: "lab3"
+author: "Марчук Александр"
+date: '10 октября 2018 г '
+output: html_document
+---
+#ЗАДАНИЕ1 
+top <- readLines("https://github.com/SergeyMirvoda/MD-DA-2018/blob/master/data/forbes.htm") 
+
+#Используйте команду readLines для загрузки файла в текстовый вектор html. 
+#Сколько строк в файле? Сколько символов в файле? 
+top
+length(top) 
+sum(nchar(top)) 
+#8821 строк и 784076 символов
+
+#Напишите шаблон регулярного выражения и используйте функцию grep, чтобы извлечь размер дохода из данных в векторе html. Удостоверьтесь, что полученный вектор номеров строк содержит содержит ровно 100 записей и ссылается на номера строк в котрых действительно есть информация о доходе, а не просто первый попавшийся текст. 
+top.test <- grep("[$][,0-9]+ [BM]", top) 
+length(top.test) == 100
+
+#Напишите код, использовав регулярное выражение из п. 3, и функции regexp и regmatches, чтобы извлечь все данные о доходе. 
+
+top.tests <- regmatches(top, regexpr("[$][,0-9]+ [BM]", top))
+length(top.tests) == 100
+
+#Самый большой доход должен быть доход Билла Гейтса #Такой доход должен быть в списке один раз. #В всписке должна быть цифра, которую мы запомнили для Ларри Эллисона.Должно быть как минимум два значения, встречающихся несколько раз. 
+
+top.tests[1] == "$72 B"
+
+length(grep("$72 B", top.tests, fixed = TRUE)) == 1 
+
+length(grep("$41 B", top.tests, fixed = TRUE)) > 0 
+
+
+#как минимум два значения, встречающихся несколько раз. 
+length(grep("$36 B", top.tests, fixed = TRUE)) > 1 
+
+length(grep("$5 B", top.tests, fixed = TRUE)) > 1 
+
+#В данных доход представлен в формате "$42 B", что означает 42 × 10^9. Преобразуйте этот формат в числовой и сохраните в вектор worths. 
+
+billion <- 10**9 
+top.tests.modification <- gsub(",", "\\.", top.tests) 
+worths <- as.double(regmatches(top.tests.modification, regexpr("[0-9.]+", top.tests.modification))) * billion 
+
+#Удостоверьтесь в следующем: worths является вектором и в нём сто занчений типа double. 
+
+length(worths) == 100 
+typeof(worths) 
+
+#Все элементы вектора worths больше 1 миллиарда. 
+
+all(worths > billion) 
+
+#Самое большое число это доход Билла Гейтса.
+
+max(worths) == 72*billion
+
+#Средний доход mean(worths) #Как много людей из этого списка имеют доход больше 5млрд., 10, 25? 
+
+length(worths[which(worths > 5*billion)]) 
+length(worths[which(worths > 10*billion)]) 
+length(worths[which(worths > 25*billion)])
+
+length(worths[which(worths > 50*billion)])
+
+#Какой их общий доход? 
+
+sum(worths) 
+
+#Какую долю от общего дохода, составляет пятёрка самых богатых. 
+
+sum(worths[1:5])/sum(worths) 
+
+#Какую долю от общего дохода, составляют 20 самых богатых. 
+
+print(sum(worths[1:20])/sum(worths)) 
+
+#В данных федерального резерва США найдите показатель дохода всех домохозяйств (Household net worth) в соответвующем году #какую долю общего дохода составляют 100 богатейших людей. 
+
+household.networth <- 98746 * billion 
+print(sum(worths)/household.networth)
