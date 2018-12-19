@@ -2,8 +2,8 @@ library(gapminder)
 #install.packages('tidyverse')
 library(dplyr)
 #Функция фильтр
-filter(gapminder, lifeExp < 29)
-filter(gapminder, country == "Afghanistan", year > 1981)
+filter(gapminder, lifeExp < 27)
+filter(gapminder, country == "Egypt", year > 1985)
 filter(gapminder, continent %in% c("Asia", "Africa"))
 #Тоже самое для векторов
 gapminder[gapminder$lifeExp < 29, ]
@@ -22,10 +22,10 @@ gapminder %>%
   head(4)
 
 gapminder %>%
-  filter(country == "Cambodia") %>%
+  filter(country == "Afghanistan") %>%
   select(year, lifeExp)
 #Ниже то же самое
-gapminder[gapminder$country == "Cambodia", c("year", "lifeExp")]
+gapminder[gapminder$country == "Afghanistan", c("year", "lifeExp")]
 
 #Для демонстрации следующих функций загрузим другой датасет
 msleep <- read.csv("https://raw.githubusercontent.com/genomicsclass/dagdata/master/inst/extdata/msleep_ggplot2.csv")
