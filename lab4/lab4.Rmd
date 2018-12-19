@@ -1,0 +1,134 @@
+---
+title: "Lab4"
+author: "Марчук Александр"
+date: '13 декабря 2018 г '
+output: html_document
+---
+data <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data", header=TRUE, sep=",")
+summary(data)
+colnames(data)
+colnames(data) <- c("sex", "length", "diameter", "height", 
+                "whole_weight", "shucked_weight",
+                "viscera_weight", "shell_weight", "rings")
+colnames(data)
+data$sex <- factor(c("Female", "Infant", "Male")[data$sex])
+par(mfrow=c(1,3)) 
+hist(data$diameter, main = "Диаметр, мм")
+hist(data$height, main = "Высота, мм")
+hist(data$whole_weight, main = "Полный вес, гр")
+
+summary(data)
+
+
+# Визуализация возможных зависимостей
+
+par(mfrow=c(1,2)) 
+plot(data$diameter, data$whole_weight,'p',main = "Зависимость веса от диаметра")
+plot(data$height, data$whole_weight,'p',main = "Зависимость веса от высоты")
+
+
+# Построение линейных моделей с помощью функции lm
+
+linear.model.1 <- lm(data$diameter ~ data$whole_weight)
+summary(linear.model.1)
+plot(linear.model.1)
+
+
+linear.model.2 <- lm(data$height ~ data$whole_weight)
+summary(linear.model.2)
+plot(linear.model.2)
+
+linear.model.4 <- lm(data$whole_weight ~ ., data = data)
+summary(linear.model.4)
+plot(linear.model.4)
+
+# Профильтруем от выборосов
+
+data.orig <- data
+data<-data[data$height<=0.18&data$height>0.08,]
+hist(data$height)
+
+data<-data[data$diameter<=0.52&data$diameter>0.26,]
+hist(data$diameter)
+
+
+data<-data[data$whole_weight<=1.4&data$whole_weight>0.2,]
+hist(data$whole_weight)
+
+# Построим линейные модели снова
+
+
+linear.model.1 <- lm(data$diameter ~ data$whole_weight)
+summary(linear.model.1)
+plot(linear.model.1)
+
+
+linear.model.2 <- lm(data$height ~ data$whole_weight)
+summary(linear.model.2)
+plot(linear.model.2)
+
+
+
+linear.model.3 <- lm(data$whole_weight ~ ., data = data)
+summary(linear.model.3)
+plot(linear.model.3)
+
+# Разделение на две части: 
+ind <- seq(1, nrow(data.orig), by=2)
+data1 <- data.orig[ind,]
+data2 <- data.orig[-ind,]
+
+# Проверка моделей
+
+## Первая модель
+
+selection1 <- lm(data1$diameter ~ data1$whole_weight)
+summary(selection1)
+
+
+
+prediction1 <- predict(selection1)
+plot(data1$whole_weight, prediction1)
+cor(data1$whole_weight, prediction1)
+
+forecast1 <- predict(selection1, data2)
+plot(data2$whole_weight, forecast1)
+cor(data2$whole_weight, forecast1)
+
+#### Вывод
+Прогноз для первой модели отражает слабую кореляцию характеристик
+
+## Вторая модель
+
+selection2 <- lm(data1$height ~ data1$whole_weight)
+summary(selection2)
+
+prediction2 <- predict(selection2)
+plot(data1$whole_weight, prediction2)
+cor(data1$whole_weight, prediction2)
+
+forecast2 <- predict(selection2, data2)
+plot(data2$whole_weight, forecast2)
+cor(data2$whole_weight, forecast2)
+
+#### Вывод
+Прогноз для второй модели отражает слабую кореляцию характеристик
+
+
+## Третяя модель
+
+selection3 <- lm(data1$whole_weight ~ . -  data1$whole_weight, data = data1)
+summary(selection3)
+
+prediction3 <- predict(selection3)
+plot(data1$whole_weight, prediction3)
+cor(data1$whole_weight, prediction3)
+
+forecast3 <- predict(selection3, data2)
+plot(data2$whole_weight, forecast3)
+cor(data2$whole_weight, forecast3)
+
+#### Вывод
+Прогноз для третьей модели отражает наличие зависимости между характеристиками
+
+
