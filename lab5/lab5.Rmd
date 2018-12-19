@@ -1,0 +1,163 @@
+---
+title: "Lab5"
+author: "Марчук Александр"
+date: '18 декабря 2018 г '
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(gplots)
+library(multcomp)
+```
+
+# Загрузим данные
+```{r}
+data = read.csv("https://raw.githubusercontent.com/InfantLab/NotebookDemos/master/diet.csv",row.names=1)
+summary(data)
+```
+
+#Ознакомимся со структурой и переименуем колонки, как нам удобно
+#https://www.sheffield.ac.uk/polopoly_fs/1.547015!/file/Diet_data_description.docx
+#https://www.sheffield.ac.uk/mash/data
+
+```{r}
+colnames(data) <- c("gender", "age", "height", "initial.weight", 
+                    "diet.type", "final.weight")
+data$diet.type <- factor(c("A", "B", "C")[data$diet.type])
+```
+
+#Добавим новую колонку - Похудение
+
+```{r}
+data$weight.loss = data$initial.weight - data$final.weight
+```
+## Проанализиуем, есть ли различия по типам диет
+```{r}
+boxplot(weight.loss~diet.type,data=data,col="light gray",
+        ylab = "Weight loss (kg)", xlab = "Diet type")
+abline(h=0,col="green")
+```
+## Проверим, сбалансированные ли данные
+```{r}
+table(data$diet.type)
+```
+## График групповых средних
+```{r}
+plotmeans(weight.loss ~ diet.type, data=data)
+aggregate(data$weight.loss, by = list(data$diet.type), FUN=sd)
+```
+## Для подгонки ANOVA модели используем функцию aov, частный случай линейной модели lm тест на межгрупповые различия
+```{r}
+fit <- aov(weight.loss ~ diet.type, data=data)
+summary(fit)
+```
+
+## Попарные различия между средними значениями для всех групп
+```{r}
+TukeyHSD(fit)
+```
+
+## Tukey honest significant differences test)
+```{r}
+par(mar=c(5,4,6,2))
+tuk <- glht(fit, linfct=mcp(diet.type="Tukey"))
+plot(cld(tuk, level=.05),col="lightgrey")
+```
+
+# Задание
+#Добавить проверку на выборы и избавиться от них повторно проверсти все тесты и сравнить результаты с выбросами и без. 
+#Открыть [документ](https://www.sheffield.ac.uk/polopoly_fs/1.547015!/file/Diet_data_description.docx) и попытаться выполнить задания из него
+
+# Проверка наличия выбросов
+```{r}
+plot(data$weight.loss ~ data$diet.type)
+```
+
+# Убираем выбросы >=8 && <=0
+```{r}
+data <- data %>%
+  filter(weight.loss >= 0 & weight.loss <= 8)
+```
+
+# Проверим результаты
+```{r}
+plot(data$weight.loss ~ data$diet.type)
+```
+
+# Проверим, сбалансированы ли данные
+```{r}
+table(data$diet.type)
+```
+# График групповых средних
+```{r}
+plotmeans(weight.loss ~ diet.type, data=data)
+aggregate(data$weight.loss, by = list(data$diet.type), FUN=sd)
+```
+
+# Для подгонки ANOVA модели используем функцию aov, частный случай линейной модели lm тест на межгрупповые различия
+```{r}
+fit <- aov(weight.loss ~ diet.type, data=data)
+summary(fit)
+```
+
+# Попарные различия между средними значениями для всех групп
+```{r}
+TukeyHSD(fit)
+```
+
+# Tukey honest significant differences test)
+```{r}
+par(mar=c(5,4,6,2))
+tuk <- glht(fit, linfct=mcp(diet.type="Tukey"))
+plot(cld(tuk, level=.05),col="lightgrey")
+```
+
+
+# Можно сделать вывод, что после того, как убрали выбросы, диета B стала результативнее диеты А
+
+#Открыть документ https://www.sheffield.ac.uk/polopoly_fs/1.547015!/file/Diet_data_description.docx
+#и попытаться выполнить задания из него
+Удалим пустые клетки из нашей выборки, чтобы оптимизировать работу с ней, и присвоим названия мужчинам и женщинам соответственно)
+
+# Отбросим пустые значения и присвоим названия по гендерному признаку
+```{r}
+data <- data %>% filter(!is.na(gender))
+data$gender <- factor( c('Female', 'Male')[as.ordered(data$gender)] )
+summary(data)
+```
+# Проверим, сбалансированы ли данные
+```{r}
+table(data$gender)
+```
+# Проанализируем, есть ли различия
+```{r}
+boxplot(weight.loss~gender,data=data,col="light gray",
+        ylab = "Weight loss (kg)", xlab = "Diet type")
+abline(h=0,col="green")
+```
+# График групповых средних
+```{r}
+plotmeans(weight.loss ~ gender, data=data)
+aggregate(data$weight.loss, by = list(data$gender), FUN=sd)
+```
+
+# Для подгонки ANOVA модели используем функцию aov, частный случай линейной модели lm тест на межгрупповые различия
+```{r}
+fit <- aov(weight.loss ~ gender, data=data)
+summary(fit)
+```
+# Попарные различия между средними значениями для всех групп
+```{r}
+THSD <- TukeyHSD(fit)
+THSD
+```
+# Tukey honest significant differences test)
+```{r}
+par(mar=c(5,4,6,2))
+tuk <- glht(fit, linfct=mcp(gender="Tukey"))
+plot(cld(tuk, level=.05),col="lightgrey")
+```
+
+# Вывод: эффективность сгонки веса не имеет прямой корреляции с полом человека, который "сидит" на диете
+© 2018 GitHub, Inc.
